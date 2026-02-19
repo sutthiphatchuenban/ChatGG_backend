@@ -7,23 +7,12 @@ import { cors } from 'hono/cors'
 
 const app = new Hono()
 
+// Apply CORS middleware (Standard)
+app.use('*', cors())
+
 // Load API keys from environment variable
 const apiKeysFromEnv = process.env.API_KEYS?.split(',').filter(Boolean) || [];
 apiKeysFromEnv.forEach(key => addApiKey(key.trim()));
-
-// Apply CORS middleware
-app.use('*', cors({
-  origin: (origin) => {
-    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['*'];
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
-      return origin || '*';
-    }
-    return null; // Block origin
-  },
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
-  credentials: true,
-}))
 
 // Apply API key authentication middleware
 app.use('*', apiKeyAuth)
