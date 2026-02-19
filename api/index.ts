@@ -27,10 +27,20 @@ app.get('/', (c) => {
     version: '1.0.0',
     description: 'Chat API supporting multiple AI models via NVIDIA',
     endpoints: {
-      health: '/api/chat/health',
+      health: '/api/health',
+      chatHealth: '/api/chat/health',
       models: '/api/chat/models',
       chat: '/api/chat/completions'
     }
+  })
+})
+
+// Global health check
+app.get('/health', (c) => {
+  return c.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    service: 'chatGG API'
   })
 })
 
