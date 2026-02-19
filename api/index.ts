@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import { handle } from 'hono/vercel'
 import chatRouter from '../src/chat.js'
 import { apiKeyAuth, addApiKey } from '../src/middleware/auth.js'
-import { cors } from '../src/middleware/cors.js'
+import { cors } from 'hono/cors'
 
 const app = new Hono()
 
@@ -12,7 +12,18 @@ const apiKeysFromEnv = process.env.API_KEYS?.split(',').filter(Boolean) || [];
 apiKeysFromEnv.forEach(key => addApiKey(key.trim()));
 
 // Apply CORS middleware
-app.use('*', cors)
+app.use('*', cors({
+  origin: (origin) => {
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['*'];
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return origin || '*';
+    }
+    return null; // Block origin
+  },
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-API-Key'],
+  credentials: true,
+}))
 
 // Apply API key authentication middleware
 app.use('*', apiKeyAuth)
@@ -49,6 +60,30 @@ app.get('/api/hello', (c) => {
   return c.json({
     message: 'Hello from chatGG API!'
   })
+})
+
+// 404 Handler
+app.notFound((c) => {
+  return c.json({
+    error: 'Not Found',
+    message: `Path ${c.req.path} not found`,
+    availableEndpoints: [
+      '/',
+      '/health',
+      '/api/chat/health',
+      '/api/chat/models',
+      '/api/chat/completions'
+    ]
+  }, 404)
+})
+
+// Error Handler
+app.onError((err, c) => {
+  console.error('App Error:', err)
+  return c.json({
+    error: 'Internal Server Error',
+    message: err.message
+  }, 500)
 })
 
 export default handle(app)
