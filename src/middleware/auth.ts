@@ -10,7 +10,14 @@ const VALID_API_KEYS = new Set<string>([
 export async function apiKeyAuth(c: Context, next: Next) {
   // Skip auth for health check and public endpoints
   const path = c.req.path;
-  if (path === '/api/chat/health' || path === '/api/') {
+  if (
+    path === '/' ||
+    path === '/health' ||
+    path === '/api' ||
+    path === '/api/' ||
+    path === '/api/health' ||
+    path.startsWith('/api/chat/health')
+  ) {
     return next();
   }
 
@@ -32,7 +39,7 @@ export async function apiKeyAuth(c: Context, next: Next) {
 
   // Store API key info in context for later use
   c.set('apiKey', apiKey);
-  
+
   await next();
 }
 

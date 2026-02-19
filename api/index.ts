@@ -5,7 +5,7 @@ import chatRouter from '../src/chat.js'
 import { apiKeyAuth, addApiKey } from '../src/middleware/auth.js'
 import { cors } from '../src/middleware/cors.js'
 
-const app = new Hono().basePath('/api')
+const app = new Hono()
 
 // Load API keys from environment variable
 const apiKeysFromEnv = process.env.API_KEYS?.split(',').filter(Boolean) || [];
@@ -18,7 +18,7 @@ app.use('*', cors)
 app.use('*', apiKeyAuth)
 
 // Mount chat routes
-app.route('/chat', chatRouter)
+app.route('/api/chat', chatRouter)
 
 // Root endpoint
 app.get('/', (c) => {
@@ -27,7 +27,7 @@ app.get('/', (c) => {
     version: '1.0.0',
     description: 'Chat API supporting multiple AI models via NVIDIA',
     endpoints: {
-      health: '/api/health',
+      health: '/health',
       chatHealth: '/api/chat/health',
       models: '/api/chat/models',
       chat: '/api/chat/completions'
@@ -45,7 +45,7 @@ app.get('/health', (c) => {
 })
 
 // Legacy hello endpoint (keep for compatibility)
-app.get('/hello', (c) => {
+app.get('/api/hello', (c) => {
   return c.json({
     message: 'Hello from chatGG API!'
   })
